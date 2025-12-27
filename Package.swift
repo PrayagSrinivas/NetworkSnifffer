@@ -1,22 +1,24 @@
 // swift-tools-version: 6.2
-// The swift-tools-version declares the minimum version of Swift required to build this package.
-
 import PackageDescription
 
 let package = Package(
     name: "NetworkSnifffer",
+    // 1. IMPORTANT: Define the minimum platform version.
+    // iOS 14 is safe for modern SwiftUI. Use .v15 if you need newer features.
+    platforms: [
+        .iOS(.v15)
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
             name: "NetworkSnifffer",
             targets: ["NetworkSnifffer"]
         ),
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
+        // This target looks for code in 'Sources/NetworkSnifffer'
         .target(
-            name: "NetworkSnifffer"
+            name: "NetworkSnifffer",
+            dependencies: []
         ),
         .testTarget(
             name: "NetworkSniffferTests",
