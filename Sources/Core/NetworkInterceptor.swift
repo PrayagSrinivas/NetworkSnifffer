@@ -20,9 +20,27 @@ final class NetworkInterceptor: URLProtocol, @unchecked Sendable {
     
     // 1. Determine if we should handle this request
     override class func canInit(with request: URLRequest) -> Bool {
-        if URLProtocol.property(forKey: NetworkInterceptor.handledKey, in: request) != nil {
+        // 1. Prevent infinite loops (Already handled)
+        if URLProtocol.property(forKey: handledKey, in: request) != nil {
             return false
         }
+        
+        // 2. CHECK IGNORED DOMAINS
+        // If the URL contains any of the ignored keywords, skip it.
+        if let urlString = request.url?.absoluteString.lowercased() {
+            for ignored in MyNetworkLib.ignoredDomains {
+                if urlString.contains(ignored.lowercased()) {
+                    return false
+                }
+            }
+        }
+        
+        // 3. Only intercept HTTP/HTTPS
+        guard let scheme = request.url?.scheme?.lowercased(),
+              (scheme == "http" || scheme == "https") else {
+            return false
+        }
+        
         return true
     }
     

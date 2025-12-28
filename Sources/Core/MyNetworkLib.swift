@@ -10,12 +10,41 @@ import Foundation
 
 public class MyNetworkLib {
     
-    public static func start() {
-        // 1. Start Intercepting
+    // 1. Create a private lock and backing storage
+    private static let lock = NSLock()
+    nonisolated(unsafe) private static var _ignoredDomains: [String] = []
+    
+    // 2. Create a computed property that manages the locking automatically
+    static var ignoredDomains: [String] {
+        get {
+            lock.lock()
+            defer { lock.unlock() }
+            return _ignoredDomains
+        }
+        set {
+            lock.lock()
+            defer { lock.unlock() }
+            _ignoredDomains = newValue
+        }
+    }
+
+    /// Start the Sniffer with optional ignored domains
+    /// - Parameter ignoredDomains: A list of hostnames or keywords to ignore (e.g. "firebase", "google")
+    public static func start(
+        ignoredDomains: [String] = [
+            "firebase",
+            "googleapis",
+            "crashlytics",
+            "app-measurement",
+            "analytics"
+        ]
+    ) {
+        // This setter is now thread-safe
+        self.ignoredDomains = ignoredDomains
+        
         URLProtocol.registerClass(NetworkInterceptor.self)
         swizzleDefaultConfiguration()
         
-        // 2. Start the UI (Using the new Retry Logic)
         Task { @MainActor in
             DebuggerWindowManager.shared.start()
         }
