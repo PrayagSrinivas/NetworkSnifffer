@@ -131,23 +131,29 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     func minimizeWindow() {
         guard let window = overlayWindow, let rootVC = window.rootViewController else { return }
         
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-            window.frame = CGRect(x: self.buttonPosition.x, y: self.buttonPosition.y, width: 60, height: 60)
-        } completion: { _ in
-            rootVC.view.alpha = 1
-            self.previousKeyWindow?.makeKeyAndVisible()
-            self.previousKeyWindow = nil
-            
-            // 2. RE-ENABLE Gestures (So we can drag/open the button again)
-            self.panGesture?.isEnabled = true
-            self.tapGesture?.isEnabled = true
-        }
+        // 1. Instant Snap (Remove UIView.animate)
+        // Since the sheet is already gone, we don't need to animate the invisible window frame.
+        window.frame = CGRect(x: self.buttonPosition.x, y: self.buttonPosition.y, width: 60, height: 60)
+        
+        // 2. Show Button Immediately
+        rootVC.view.alpha = 1
+        
+        // 3. Return Focus to App Immediately
+        self.previousKeyWindow?.makeKeyAndVisible()
+        self.previousKeyWindow = nil
+        
+        // 4. Re-enable Gestures
+        self.panGesture?.isEnabled = true
+        self.tapGesture?.isEnabled = true
     }
 }
 
 class DebuggerHostingController<Content: View>: UIHostingController<Content> {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
+        
+        // This triggers ONLY after the sheet has fully slid off screen.
+        // It calls our new "Instant Snap" function, making the button pop back immediately.
         if isBeingDismissed {
             DebuggerWindowManager.shared.minimizeWindow()
         }

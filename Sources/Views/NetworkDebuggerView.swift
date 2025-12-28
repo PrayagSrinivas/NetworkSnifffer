@@ -64,14 +64,10 @@ public struct NetworkDebuggerView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Close") {
-                        // 1. Dismiss the SwiftUI Sheet
-                        // Use the Environment dismiss if available, or this fallback:
+                        // JUST dismiss. Don't call minimizeWindow() manually!
+                        // This lets the animation finish smoothly.
                         UIApplication.shared.windows.first(where: { $0.isKeyWindow })?
                             .rootViewController?.dismiss(animated: true, completion: nil)
-                        
-                        // 2. Tell Manager to shrink the window (It happens automatically in viewDidDisappear,
-                        // but explicit calling is safe too)
-                        DebuggerWindowManager.shared.minimizeWindow()
                     }
                 }
                 
