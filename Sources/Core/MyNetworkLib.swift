@@ -12,35 +12,24 @@ public class MyNetworkLib {
     
     // 1. Create a private lock and backing storage
     private static let lock = NSLock()
-    nonisolated(unsafe) private static var _ignoredDomains: [String] = []
-    
+    nonisolated(unsafe) private static var _capturedHosts: [String] = []
     // 2. Create a computed property that manages the locking automatically
-    static var ignoredDomains: [String] {
-        get {
-            lock.lock()
-            defer { lock.unlock() }
-            return _ignoredDomains
+    static var capturedHosts: [String] {
+            get {
+                lock.lock()
+                defer { lock.unlock() }
+                return _capturedHosts
+            }
+            set {
+                lock.lock()
+                defer { lock.unlock() }
+                _capturedHosts = newValue
+            }
         }
-        set {
-            lock.lock()
-            defer { lock.unlock() }
-            _ignoredDomains = newValue
-        }
-    }
-
     /// Start the Sniffer with optional ignored domains
     /// - Parameter ignoredDomains: A list of hostnames or keywords to ignore (e.g. "firebase", "google")
-    public static func start(
-        ignoredDomains: [String] = [
-            "firebase",
-            "googleapis",
-            "crashlytics",
-            "app-measurement",
-            "analytics"
-        ]
-    ) {
-        // This setter is now thread-safe
-        self.ignoredDomains = ignoredDomains
+    public static func start(capturedHosts: [String] = []) {
+        self.capturedHosts = capturedHosts
         
         URLProtocol.registerClass(NetworkInterceptor.self)
         swizzleDefaultConfiguration()

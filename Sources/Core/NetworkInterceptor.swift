@@ -20,29 +20,37 @@ final class NetworkInterceptor: URLProtocol, @unchecked Sendable {
     
     // 1. Determine if we should handle this request
     override class func canInit(with request: URLRequest) -> Bool {
-        // 1. Prevent infinite loops (Already handled)
-        if URLProtocol.property(forKey: handledKey, in: request) != nil {
-            return false
-        }
-        
-        // 2. CHECK IGNORED DOMAINS
-        // If the URL contains any of the ignored keywords, skip it.
-        if let urlString = request.url?.absoluteString.lowercased() {
-            for ignored in MyNetworkLib.ignoredDomains {
-                if urlString.contains(ignored.lowercased()) {
+            // 1. Prevent infinite loops
+            if URLProtocol.property(forKey: handledKey, in: request) != nil {
+                return false
+            }
+            
+            guard let urlString = request.url?.absoluteString.lowercased(),
+                  let scheme = request.url?.scheme?.lowercased(),
+                  (scheme == "http" || scheme == "https") else {
+                return false
+            }
+            
+            // 2. CHECK ALLOWLIST (New Logic)
+            let filters = MyNetworkLib.capturedHosts
+            
+            // If the list is NOT empty, we must strictly check against it.
+            if !filters.isEmpty {
+                var foundMatch = false
+                for host in filters {
+                    if urlString.contains(host.lowercased()) {
+                        foundMatch = true
+                        break
+                    }
+                }
+                // If the URL didn't match anything in our list, IGNORE IT.
+                if !foundMatch {
                     return false
                 }
             }
+            
+            return true
         }
-        
-        // 3. Only intercept HTTP/HTTPS
-        guard let scheme = request.url?.scheme?.lowercased(),
-              (scheme == "http" || scheme == "https") else {
-            return false
-        }
-        
-        return true
-    }
     
     // 2. Canonical request (usually just return the request)
     override class func canonicalRequest(for request: URLRequest) -> URLRequest {
