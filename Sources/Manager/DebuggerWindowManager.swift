@@ -16,29 +16,42 @@ class DebuggerWindowManager: ObservableObject {
     private var overlayWindow: DebuggerWindow?
     
     func show() {
-        // Prevent creating multiple windows
         guard overlayWindow == nil else { return }
         
-        // Find the active window scene (iOS 13+)
         guard let scene = UIApplication.shared.connectedScenes
             .first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
             return
         }
         
-        // Create the transparent overlay window
         let window = DebuggerWindow(windowScene: scene)
         window.frame = UIScreen.main.bounds
         window.backgroundColor = .clear
-        window.windowLevel = .statusBar + 1 // Ensure it sits above everything
+        window.windowLevel = .statusBar + 1
         
-        // Host the Floating Button
         let buttonView = FloatingDebuggerButton()
         let hostingController = UIHostingController(rootView: buttonView)
-        hostingController.view.backgroundColor = .clear // Make SwiftUI background clear
+        hostingController.view.backgroundColor = .clear
         
         window.rootViewController = hostingController
         window.isHidden = false
         
         self.overlayWindow = window
+    }
+    
+    func presentDebugger() {
+        guard let rootVC = overlayWindow?.rootViewController else { return }
+        
+        // Prevent double presentation
+        if rootVC.presentedViewController is UIHostingController<NetworkDebuggerView> {
+            return
+        }
+        
+        // Create the Debugger UI
+        let debuggerView = NetworkDebuggerView()
+        let hostingVC = UIHostingController(rootView: debuggerView)
+        hostingVC.modalPresentationStyle = .fullScreen
+        
+        // Present strictly from our own Overlay Window
+        rootVC.present(hostingVC, animated: true)
     }
 }

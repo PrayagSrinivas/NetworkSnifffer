@@ -11,7 +11,7 @@ import SwiftUI
 public struct FloatingDebuggerButton: View {
     @ObservedObject var logger = NetworkLogger.shared
     
-    // CHANGED: Use CGPoint instead of CGSize for absolute positioning
+    // Use CGPoint for absolute positioning
     @State private var position: CGPoint = CGPoint(
         x: UIScreen.main.bounds.width - 60,
         y: UIScreen.main.bounds.height - 200
@@ -22,7 +22,8 @@ public struct FloatingDebuggerButton: View {
     public var body: some View {
         GeometryReader { geometry in
             Button(action: {
-                presentDashboard()
+                // FIXED: Call the manager directly
+                DebuggerWindowManager.shared.presentDebugger()
             }) {
                 ZStack {
                     Circle()
@@ -48,21 +49,18 @@ public struct FloatingDebuggerButton: View {
                     }
                 }
             }
-            // FIX: Use .position with the CGPoint directly
             .position(position)
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
-                        // FIX: Now we can assign CGPoint directly to CGPoint
                         self.position = gesture.location
                     }
                     .onEnded { gesture in
-                        // Optional: Keep it inside screen bounds
                         withAnimation {
                             var newX = gesture.location.x
                             var newY = gesture.location.y
                             
-                            // Simple boundary checks
+                            // Boundary checks
                             if newX < 30 { newX = 30 }
                             if newX > geometry.size.width - 30 { newX = geometry.size.width - 30 }
                             if newY < 50 { newY = 50 }
@@ -73,20 +71,5 @@ public struct FloatingDebuggerButton: View {
                     }
             )
         }
-    }
-    
-    func presentDashboard() {
-        // We need to find the top-most view controller to present the sheet
-        guard let windowScene = UIApplication.shared.connectedScenes.first as? UIWindowScene,
-              let rootVC = windowScene.windows.first(where: { $0.isKeyWindow })?.rootViewController else { return }
-        
-        // Prevent double presentation
-        if rootVC.presentedViewController is UIHostingController<NetworkDebuggerView> { return }
-        
-        let debuggerView = NetworkDebuggerView()
-        let hostingVC = UIHostingController(rootView: debuggerView)
-        hostingVC.modalPresentationStyle = .fullScreen
-        
-        rootVC.present(hostingVC, animated: true)
     }
 }
