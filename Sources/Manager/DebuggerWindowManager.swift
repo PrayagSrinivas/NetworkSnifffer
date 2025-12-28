@@ -14,20 +14,13 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     static let shared = DebuggerWindowManager()
     
     private var overlayWindow: UIWindow?
-    // Start position: Bottom-right corner (safe area aware)
+    private var previousKeyWindow: UIWindow? // Store the app's window
     private var buttonPosition = CGPoint(x: UIScreen.main.bounds.width - 80, y: UIScreen.main.bounds.height - 150)
-    
-    // Retry timer to find the window scene
     private var searchTimer: Timer?
     
     func start() {
-        // Stop any existing timer
         searchTimer?.invalidate()
-        
-        // Try to find the scene immediately
         if attemptToShowWindow() { return }
-        
-        // If fail, retry every 0.1s until the app is fully active
         searchTimer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { [weak self] timer in
             guard let self = self else { return }
             if self.attemptToShowWindow() {
@@ -37,34 +30,30 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     }
     
     private func attemptToShowWindow() -> Bool {
-        // Prevent duplicates
         if overlayWindow != nil { return true }
         
-        // robustly find the active scene
+        // Find the active scene
         let scene = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first { $0.activationState == .foregroundActive }
         
         guard let windowScene = scene else { return false }
-        
         setupWindow(in: windowScene)
         return true
     }
     
     private func setupWindow(in scene: UIWindowScene) {
-        // 1. Create Small Window (60x60)
         let window = UIWindow(windowScene: scene)
         window.frame = CGRect(x: buttonPosition.x, y: buttonPosition.y, width: 60, height: 60)
         window.backgroundColor = .clear
-        window.windowLevel = .statusBar + 1 // Always on top
+        window.windowLevel = .statusBar + 1
         
-        // 2. Setup SwiftUI View (Visual Only - No Button Action)
         let buttonView = FloatingDebuggerButton()
         let hostingController = UIHostingController(rootView: buttonView)
         hostingController.view.backgroundColor = .clear
         window.rootViewController = hostingController
         
-        // 3. Add Gestures DIRECTLY to the Window (Solves Simulator Issue)
+        // Add Gestures
         let panGesture = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         let tapGesture = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         
@@ -76,7 +65,6 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     }
     
     // MARK: - Gestures
-    
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
         presentDebugger()
     }
@@ -85,63 +73,72 @@ class DebuggerWindowManager: NSObject, ObservableObject {
         guard let window = overlayWindow else { return }
         
         let translation = gesture.translation(in: window)
-        // Move the window center
-        let newCenter = CGPoint(x: window.center.x + translation.x, y: window.center.y + translation.y)
-        
-        window.center = newCenter
+        window.center = CGPoint(x: window.center.x + translation.x, y: window.center.y + translation.y)
         gesture.setTranslation(.zero, in: window)
         
         if gesture.state == .ended {
-            // Keep the window within screen bounds
             let screen = UIScreen.main.bounds
-            var finalX = window.center.x
-            var finalY = window.center.y
+            // Keep button on screen
+            var finalX = max(30, min(screen.width - 30, window.center.x))
+            var finalY = max(50, min(screen.height - 50, window.center.y))
             
-            // Clamp X
-            if finalX < 30 { finalX = 30 }
-            if finalX > screen.width - 30 { finalX = screen.width - 30 }
-            
-            // Clamp Y
-            if finalY < 50 { finalY = 50 }
-            if finalY > screen.height - 50 { finalY = screen.height - 50 }
-            
-            UIView.animate(withDuration: 0.3) {
+            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
                 window.center = CGPoint(x: finalX, y: finalY)
             }
-            
-            // Save position so it remembers where it was if we minimize later
             self.buttonPosition = window.frame.origin
         }
     }
     
-    // MARK: - Presentation
+    // MARK: - Presentation Logic
     
     func presentDebugger() {
         guard let window = overlayWindow, let rootVC = window.rootViewController else { return }
         
-        // 1. Expand Window to Full Screen
-        UIView.animate(withDuration: 0.2) {
-            window.frame = UIScreen.main.bounds
-        }
+        // 1. Capture the current Key Window (Your App) so we can give focus back later
+        self.previousKeyWindow = UIApplication.shared.connectedScenes
+            .compactMap { $0 as? UIWindowScene }
+            .flatMap { $0.windows }
+            .first { $0.isKeyWindow }
         
-        // 2. Present Modal
-        let debuggerView = NetworkDebuggerView()
-        let hostingVC = DebuggerHostingController(rootView: debuggerView)
-        hostingVC.modalPresentationStyle = .fullScreen
-        rootVC.present(hostingVC, animated: true)
+        // 2. Expand Window
+        window.frame = UIScreen.main.bounds
+        window.layoutIfNeeded()
+        
+        // 3. Make Debugger Key (CRITICAL for Navigation/Search to work)
+        window.makeKeyAndVisible()
+        
+        // 4. Hide the floating button view so it doesn't block the center
+        rootVC.view.alpha = 0
+        
+        // 5. Present (Delayed slightly to ensure Window Hierarchy is ready)
+        DispatchQueue.main.async {
+            let debuggerView = NetworkDebuggerView()
+            let hostingVC = DebuggerHostingController(rootView: debuggerView)
+            hostingVC.modalPresentationStyle = .overFullScreen
+            hostingVC.view.backgroundColor = .clear
+            
+            rootVC.present(hostingVC, animated: true)
+        }
     }
     
     func minimizeWindow() {
-        guard let window = overlayWindow else { return }
+        guard let window = overlayWindow, let rootVC = window.rootViewController else { return }
         
-        // Shrink back to button size
-        UIView.animate(withDuration: 0.3) {
+        // 1. Shrink Window
+        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
             window.frame = CGRect(x: self.buttonPosition.x, y: self.buttonPosition.y, width: 60, height: 60)
+        } completion: { _ in
+            // 2. Show Button again
+            rootVC.view.alpha = 1
+            
+            // 3. Return Focus to the App
+            self.previousKeyWindow?.makeKeyAndVisible()
+            self.previousKeyWindow = nil
         }
     }
 }
 
-// Helper to detect dismissal
+// Custom Controller to detect dismissal
 class DebuggerHostingController<Content: View>: UIHostingController<Content> {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
