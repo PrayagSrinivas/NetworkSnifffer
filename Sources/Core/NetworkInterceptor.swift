@@ -31,24 +31,31 @@ final class NetworkInterceptor: URLProtocol, @unchecked Sendable {
                 return false
             }
             
-            // 2. CHECK ALLOWLIST (New Logic)
+            // 2. CHECK ALLOWLIST
             let filters = MyNetworkLib.capturedHosts
             
-            // If the list is NOT empty, we must strictly check against it.
+            // If filters exist, strictly check them
             if !filters.isEmpty {
                 var foundMatch = false
-                for host in filters {
-                    if urlString.contains(host.lowercased()) {
+                
+                for filter in filters {
+                    // TRIM WHITESPACE to prevent " keka" errors
+                    let cleanFilter = filter.trimmingCharacters(in: .whitespacesAndNewlines).lowercased()
+                    
+                    if urlString.contains(cleanFilter) {
                         foundMatch = true
                         break
                     }
                 }
-                // If the URL didn't match anything in our list, IGNORE IT.
+                
                 if !foundMatch {
+                    // DEBUG PRINT: Uncomment this line to see why URLs are being ignored
+                    // print("❌ IGNORED: \(urlString) (Did not match: \(filters))")
                     return false
                 }
             }
             
+            // print("✅ CAPTURING: \(urlString)")
             return true
         }
     
