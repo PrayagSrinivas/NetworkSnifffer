@@ -10,7 +10,7 @@ import UIKit
 import SwiftUI
 
 @MainActor
-class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationControllerDelegate {
+class DebuggerWindowManager: NSObject, ObservableObject {
     static let shared = DebuggerWindowManager()
     
     private var overlayWindow: UIWindow?
@@ -20,6 +20,7 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
     
     private var panGesture: UIPanGestureRecognizer?
     private var tapGesture: UITapGestureRecognizer?
+    private var longPressGesture: UILongPressGestureRecognizer?
     
     func start() {
         searchTimer?.invalidate()
@@ -34,11 +35,9 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
     
     private func attemptToShowWindow() -> Bool {
         if overlayWindow != nil { return true }
-        
         let scene = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
             .first { $0.activationState == .foregroundActive }
-        
         guard let windowScene = scene else { return false }
         setupWindow(in: windowScene)
         return true
@@ -59,7 +58,7 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
         let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
-        longPress.minimumPressDuration = 0.8
+        longPress.minimumPressDuration = 0.5 // Faster response
         
         window.addGestureRecognizer(pan)
         window.addGestureRecognizer(tap)
@@ -67,6 +66,7 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
         
         self.panGesture = pan
         self.tapGesture = tap
+        self.longPressGesture = longPress
         
         window.isHidden = false
         self.overlayWindow = window
@@ -79,7 +79,6 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
     
     @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
         guard let window = overlayWindow else { return }
-        
         let translation = gesture.translation(in: window)
         window.center = CGPoint(x: window.center.x + translation.x, y: window.center.y + translation.y)
         gesture.setTranslation(.zero, in: window)
@@ -100,59 +99,41 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
         if gesture.state == .began {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.warning)
-            presentClearLogsAlert()
+            
+            // Call the new menu presentation
+            presentMenuOverlay()
         }
     }
     
-    // MARK: - Alert Logic (FIXED)
-    private func presentClearLogsAlert() {
+    // MARK: - Menu Presentation (NEW)
+    private func presentMenuOverlay() {
         guard let window = overlayWindow, let rootVC = window.rootViewController else { return }
+        if rootVC.presentedViewController != nil { return }
+
+        // Disable gestures while menu is open
+        panGesture?.isEnabled = false
+        tapGesture?.isEnabled = false
+        longPressGesture?.isEnabled = false
         
-        // 1. Expand Window to Full Screen (Fixes Clipping)
-        self.previousKeyWindow = UIApplication.shared.connectedScenes
-            .compactMap { $0 as? UIWindowScene }
-            .flatMap { $0.windows }
-            .first { $0.isKeyWindow }
-            
+        // Expand window to full screen
         window.frame = UIScreen.main.bounds
         window.layoutIfNeeded()
         
-        // 2. Create Alert
-        let alert = UIAlertController(
-            title: "Clear Logs?",
-            message: "This will delete all captured network traffic.",
-            preferredStyle: .actionSheet
-        )
+        rootVC.view.alpha = 0 // Hide real button
         
-        // 3. Handle Actions (Shrink window back when done)
-        let deleteAction = UIAlertAction(title: "Delete All", style: .destructive) { [weak self] _ in
-            Task { @MainActor in
-                NetworkLogger.shared.clearLogs()
-                self?.minimizeWindow()
-            }
+        // Pass the CURRENT position to the overlay so it draws in the right spot
+        // Note: buttonPosition is the Top-Left origin.
+        let menuView = DebuggerMenuOverlay(buttonPosition: self.buttonPosition) {
+            // Dismiss Callback
+            rootVC.dismiss(animated: false, completion: nil)
         }
         
-        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel) { [weak self] _ in
-            self?.minimizeWindow()
-        }
+        let hostingVC = DebuggerHostingController(rootView: menuView)
+        hostingVC.modalPresentationStyle = .overFullScreen
+        hostingVC.view.backgroundColor = .clear
         
-        alert.addAction(deleteAction)
-        alert.addAction(cancelAction)
-        
-        // 4. iPad Support (Popover)
-        if let popoverController = alert.popoverPresentationController {
-            popoverController.sourceView = rootVC.view
-            popoverController.sourceRect = CGRect(x: window.bounds.midX, y: window.bounds.midY, width: 0, height: 0)
-            popoverController.permittedArrowDirections = []
-            popoverController.delegate = self // Handle tap-outside dismissal
-        }
-        
-        rootVC.present(alert, animated: true, completion: nil)
-    }
-    
-    // Handle tapping outside the popover on iPad
-    func popoverPresentationControllerDidDismissPopover(_ popoverPresentationController: UIPopoverPresentationController) {
-        minimizeWindow()
+        // Present without animation (SwiftUI handles the pop-out animation)
+        rootVC.present(hostingVC, animated: false)
     }
     
     // MARK: - Dashboard Presentation
@@ -162,6 +143,7 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
         
         panGesture?.isEnabled = false
         tapGesture?.isEnabled = false
+        longPressGesture?.isEnabled = false
         
         self.previousKeyWindow = UIApplication.shared.connectedScenes
             .compactMap { $0 as? UIWindowScene }
@@ -195,9 +177,11 @@ class DebuggerWindowManager: NSObject, ObservableObject, UIPopoverPresentationCo
         
         self.panGesture?.isEnabled = true
         self.tapGesture?.isEnabled = true
+        self.longPressGesture?.isEnabled = true
     }
 }
 
+// Controller helper remains the same
 class DebuggerHostingController<Content: View>: UIHostingController<Content> {
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
