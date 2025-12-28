@@ -8,18 +8,25 @@
 
 import SwiftUI
 
-struct FloatingDebuggerButton: View {
+public struct FloatingDebuggerButton: View {
     @ObservedObject var logger = NetworkLogger.shared
-    @State private var offset = CGSize(width: UIScreen.main.bounds.width - 70, height: UIScreen.main.bounds.height - 200)
     
-    var body: some View {
+    // CHANGED: Use CGPoint instead of CGSize for absolute positioning
+    @State private var position: CGPoint = CGPoint(
+        x: UIScreen.main.bounds.width - 60,
+        y: UIScreen.main.bounds.height - 200
+    )
+    
+    public init() {}
+    
+    public var body: some View {
         GeometryReader { geometry in
             Button(action: {
                 presentDashboard()
             }) {
                 ZStack {
                     Circle()
-                        .fill(Color.black.opacity(0.8)) // Dark theme button
+                        .fill(Color.black.opacity(0.8))
                         .frame(width: 50, height: 50)
                         .shadow(radius: 5)
                         .overlay(
@@ -30,7 +37,6 @@ struct FloatingDebuggerButton: View {
                         .font(.system(size: 24))
                         .foregroundColor(.green)
                     
-                    // Badge
                     if logger.logs.count > 0 {
                         Text("\(logger.logs.count)")
                             .font(.system(size: 10, weight: .bold))
@@ -42,12 +48,28 @@ struct FloatingDebuggerButton: View {
                     }
                 }
             }
-            .position(x: 25, y: 25) // Center pivot
-            .offset(x: offset.width, y: offset.height)
+            // FIX: Use .position with the CGPoint directly
+            .position(position)
             .gesture(
                 DragGesture()
                     .onChanged { gesture in
-                        self.offset = gesture.location
+                        // FIX: Now we can assign CGPoint directly to CGPoint
+                        self.position = gesture.location
+                    }
+                    .onEnded { gesture in
+                        // Optional: Keep it inside screen bounds
+                        withAnimation {
+                            var newX = gesture.location.x
+                            var newY = gesture.location.y
+                            
+                            // Simple boundary checks
+                            if newX < 30 { newX = 30 }
+                            if newX > geometry.size.width - 30 { newX = geometry.size.width - 30 }
+                            if newY < 50 { newY = 50 }
+                            if newY > geometry.size.height - 50 { newY = geometry.size.height - 50 }
+                            
+                            self.position = CGPoint(x: newX, y: newY)
+                        }
                     }
             )
         }
