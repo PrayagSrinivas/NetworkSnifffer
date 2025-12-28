@@ -11,12 +11,16 @@ import Foundation
 public class MyNetworkLib {
     
     public static func start() {
-        // Register the protocol globally
-        URLProtocol.registerClass(NetworkInterceptor.self)
-        
-        // Swizzle URLSessionConfiguration to inject our protocol automatically
-        swizzleDefaultConfiguration()
-    }
+            // 1. Start Intercepting Traffic
+            URLProtocol.registerClass(NetworkInterceptor.self)
+            swizzleDefaultConfiguration()
+            
+            // 2. Show the Floating UI automatically
+            // We delay slightly to ensure the App's WindowScene is ready
+            DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                DebuggerWindowManager.shared.show()
+            }
+        }
     
     private static func swizzleDefaultConfiguration() {
         let method = class_getClassMethod(URLSessionConfiguration.self, #selector(getter: URLSessionConfiguration.default))
