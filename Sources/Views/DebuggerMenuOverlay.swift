@@ -9,25 +9,29 @@
 import SwiftUI
 
 struct DebuggerMenuOverlay: View {
-    // The exact position where the floating button currently sits
     let buttonPosition: CGPoint
     let onDismiss: () -> Void
     
     @ObservedObject var logger = NetworkLogger.shared
     @State private var showMenu = false
     
+    // Determine which side the button is on
+    var isRightSide: Bool {
+        return buttonPosition.x > UIScreen.main.bounds.width / 2
+    }
+    
     var body: some View {
         ZStack {
-            // 1. Tappable Background (Closes the menu)
+            // Background Tap to Dismiss
             Color.black.opacity(0.2)
                 .edgesIgnoringSafeArea(.all)
-                .onTapGesture {
-                    closeMenu()
-                }
+                .onTapGesture { closeMenu() }
             
-            // 2. The Menu Cluster
             ZStack {
-                // --- TRASH BUTTON (Left) ---
+                // Direction multiplier: -1 if on right (move left), 1 if on left (move right)
+                let direction: CGFloat = isRightSide ? -1 : 1
+                
+                // --- TRASH BUTTON (Top-Diagonal) ---
                 if showMenu {
                     Button(action: {
                         logger.clearLogs()
@@ -39,11 +43,12 @@ struct DebuggerMenuOverlay: View {
                             .shadow(radius: 3)
                             .overlay(Image(systemName: "trash").foregroundColor(.red))
                     }
-                    .offset(x: -60, y: -10) // Pop out to the left
+                    // Offset: Move Inwards (X) and Up (Y)
+                    .offset(x: 70 * direction, y: -40)
                     .transition(.scale.combined(with: .opacity))
                 }
                 
-                // --- CLOSE BUTTON (Right) ---
+                // --- CLOSE BUTTON (Bottom-Diagonal) ---
                 if showMenu {
                     Button(action: {
                         closeMenu()
@@ -54,13 +59,12 @@ struct DebuggerMenuOverlay: View {
                             .shadow(radius: 3)
                             .overlay(Image(systemName: "xmark").foregroundColor(.black))
                     }
-                    .offset(x: 60, y: -10) // Pop out to the right
+                    // Offset: Move Inwards (X) and Down (Y)
+                    .offset(x: 70 * direction, y: 40)
                     .transition(.scale.combined(with: .opacity))
                 }
                 
-                // --- MAIN ANCHOR BUTTON ---
-                // This sits exactly where the floating button was, 
-                // creating the illusion that the button just "activated".
+                // --- MAIN ANCHOR (Visual Only) ---
                 ZStack {
                     Circle()
                         .fill(Color.black.opacity(0.8))
@@ -71,11 +75,10 @@ struct DebuggerMenuOverlay: View {
                         .font(.system(size: 24))
                         .foregroundColor(.green)
                 }
-                .onTapGesture {
-                    closeMenu() // Tapping main button also closes
-                }
+                .onTapGesture { closeMenu() }
             }
-            .position(x: buttonPosition.x + 30, y: buttonPosition.y + 30) // Offset for radius
+            // Position exactly where the real button is
+            .position(x: buttonPosition.x + 30, y: buttonPosition.y + 30)
         }
         .onAppear {
             withAnimation(.spring(response: 0.4, dampingFraction: 0.6)) {
@@ -88,7 +91,6 @@ struct DebuggerMenuOverlay: View {
         withAnimation {
             showMenu = false
         }
-        // Delay dismissal slightly to allow animation to finish
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
             onDismiss()
         }

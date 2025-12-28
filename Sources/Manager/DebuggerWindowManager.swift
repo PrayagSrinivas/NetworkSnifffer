@@ -76,24 +76,6 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     @objc private func handleTap(_ gesture: UITapGestureRecognizer) {
         presentDebugger()
     }
-    
-    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
-        guard let window = overlayWindow else { return }
-        let translation = gesture.translation(in: window)
-        window.center = CGPoint(x: window.center.x + translation.x, y: window.center.y + translation.y)
-        gesture.setTranslation(.zero, in: window)
-        
-        if gesture.state == .ended {
-            let screen = UIScreen.main.bounds
-            var finalX = max(30, min(screen.width - 30, window.center.x))
-            var finalY = max(50, min(screen.height - 50, window.center.y))
-            
-            UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
-                window.center = CGPoint(x: finalX, y: finalY)
-            }
-            self.buttonPosition = window.frame.origin
-        }
-    }
 
     @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
         if gesture.state == .began {
@@ -102,6 +84,45 @@ class DebuggerWindowManager: NSObject, ObservableObject {
             
             // Call the new menu presentation
             presentMenuOverlay()
+        }
+    }
+
+        // MARK: - Gestures
+    @objc private func handlePan(_ gesture: UIPanGestureRecognizer) {
+        guard let window = overlayWindow else { return }
+        
+        let translation = gesture.translation(in: window)
+        window.center = CGPoint(x: window.center.x + translation.x, y: window.center.y + translation.y)
+        gesture.setTranslation(.zero, in: window)
+        
+        if gesture.state == .ended {
+            let screen = UIScreen.main.bounds
+            let buttonWidth: CGFloat = 60
+            let safePadding: CGFloat = 35 // Distance from edge
+            
+            // 1. Determine Snap Target X
+            // If we are past the middle, go right. Otherwise, go left.
+            let isRightSide = window.center.x > screen.width / 2
+            let finalX = isRightSide ? screen.width - safePadding : safePadding
+            
+            // 2. Clamp Y to keep it on screen vertically
+            var finalY = window.center.y
+            let minY = 50.0 + (window.windowScene?.statusBarManager?.statusBarFrame.height ?? 0)
+            let maxY = screen.height - 50.0
+            
+            if finalY < minY { finalY = minY }
+            if finalY > maxY { finalY = maxY }
+            
+            // 3. Animate the Snap
+            UIView.animate(withDuration: 0.4, delay: 0, usingSpringWithDamping: 0.75, initialSpringVelocity: 0.5, options: .curveEaseOut) {
+                window.center = CGPoint(x: finalX, y: finalY)
+            }
+            
+            // 4. Update stored position
+            // IMPORTANT: We use the frame's origin (top-left) for storage, not center
+            let originX = finalX - (buttonWidth / 2)
+            let originY = finalY - (buttonWidth / 2)
+            self.buttonPosition = CGPoint(x: originX, y: originY)
         }
     }
     
