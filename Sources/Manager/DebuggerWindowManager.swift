@@ -56,19 +56,65 @@ class DebuggerWindowManager: NSObject, ObservableObject {
         hostingController.view.backgroundColor = .clear
         window.rootViewController = hostingController
         
-        // Setup Gestures
+        // --- ADD GESTURES ---
         let pan = UIPanGestureRecognizer(target: self, action: #selector(handlePan(_:)))
         let tap = UITapGestureRecognizer(target: self, action: #selector(handleTap(_:)))
+        // 1. New Long Press Gesture
+        let longPress = UILongPressGestureRecognizer(target: self, action: #selector(handleLongPress(_:)))
+        longPress.minimumPressDuration = 0.8 // 0.8 seconds to trigger
         
         window.addGestureRecognizer(pan)
         window.addGestureRecognizer(tap)
+        window.addGestureRecognizer(longPress) // 2. Add it to window
         
-        // Save references
         self.panGesture = pan
         self.tapGesture = tap
         
         window.isHidden = false
         self.overlayWindow = window
+    }
+    
+    @objc private func handleLongPress(_ gesture: UILongPressGestureRecognizer) {
+        // Only trigger on the "began" state, otherwise it fires repeatedly
+        if gesture.state == .began {
+            
+            // Haptic Feedback
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.warning)
+            
+            // Show Alert
+            presentClearLogsAlert()
+        }
+    }
+        
+    private func presentClearLogsAlert() {
+        guard let rootVC = overlayWindow?.rootViewController else { return }
+        
+        let alert = UIAlertController(
+            title: "Clear Logs?",
+            message: "This will delete all captured network traffic.",
+            preferredStyle: .actionSheet // Pop up from the bottom (or button on iPad)
+        )
+        
+        let deleteAction = UIAlertAction(title: "Delete All", style: .destructive) { _ in
+            Task { @MainActor in
+                NetworkLogger.shared.clearLogs()
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .cancel, handler: nil)
+        
+        alert.addAction(deleteAction)
+        alert.addAction(cancelAction)
+        
+        // For iPad support (sourceView is required for action sheets)
+        if let popoverController = alert.popoverPresentationController {
+            popoverController.sourceView = rootVC.view
+            popoverController.sourceRect = CGRect(x: rootVC.view.bounds.midX, y: rootVC.view.bounds.midY, width: 0, height: 0)
+            popoverController.permittedArrowDirections = []
+        }
+        
+        rootVC.present(alert, animated: true, completion: nil)
     }
     
     // MARK: - Gestures
@@ -85,8 +131,8 @@ class DebuggerWindowManager: NSObject, ObservableObject {
         
         if gesture.state == .ended {
             let screen = UIScreen.main.bounds
-            var finalX = max(30, min(screen.width - 30, window.center.x))
-            var finalY = max(50, min(screen.height - 50, window.center.y))
+            let finalX = max(30, min(screen.width - 30, window.center.x))
+            let finalY = max(50, min(screen.height - 50, window.center.y))
             
             UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut) {
                 window.center = CGPoint(x: finalX, y: finalY)
