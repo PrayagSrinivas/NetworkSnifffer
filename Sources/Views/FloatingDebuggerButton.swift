@@ -9,6 +9,7 @@ import SwiftUI
 
 public struct FloatingDebuggerButton: View {
     @ObservedObject var logger = NetworkLogger.shared
+    var hasLogs: Bool { !logger.logs.isEmpty }
     
     public init() {}
     
@@ -16,8 +17,6 @@ public struct FloatingDebuggerButton: View {
         // NO BUTTON HERE. Just the visual elements.
         // Taps are handled by the Window Manager now.
         ZStack {
-            let hasLogs = !logger.logs.isEmpty
-            
             ThemedNetworkIcon(size: 50, iconSize: 24, hasBackground: true)
                 .shadow(radius: 5)
                 .overlay(

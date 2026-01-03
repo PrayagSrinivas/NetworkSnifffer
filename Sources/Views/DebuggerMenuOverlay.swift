@@ -16,6 +16,8 @@ struct DebuggerMenuOverlay: View {
     @Environment(\.colorScheme) private var colorScheme
     @State private var showMenu = false
     
+    var hasLogs: Bool { !logger.logs.isEmpty }
+    
     // Determine which side the button is on
     var isRightSide: Bool {
         return buttonPosition.x > UIScreen.main.bounds.width / 2
@@ -31,7 +33,6 @@ struct DebuggerMenuOverlay: View {
             ZStack {
                 // Direction multiplier: -1 if on right (move left), 1 if on left (move right)
                 let direction: CGFloat = isRightSide ? -1 : 1
-                let hasLogs = !logger.logs.isEmpty
                 
                 // --- TRASH BUTTON (Top-Diagonal) ---
                 if showMenu {
