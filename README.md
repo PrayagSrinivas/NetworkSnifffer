@@ -6,8 +6,9 @@ It intercepts **all `URLSession` traffic** inside your app and provides a **powe
 ![Platform](https://img.shields.io/badge/Platform-iOS%2014.0%2B-blue.svg)
 ![Swift](https://img.shields.io/badge/Swift-5.5%2B-orange.svg)
 ![License](https://img.shields.io/badge/License-MIT-green.svg)
-
 ---
+![Simulator Screen Recording - iPhone 17 Pro - 2026-01-03 at 17 29 19](https://github.com/user-attachments/assets/7c599a6b-3147-43ae-ab59-d23d107caa3a)
+<img width="300" height="600" alt="Simulator Screenshot - iPhone 17 Pro - 2026-01-03 at 17 29 38" src="https://github.com/user-attachments/assets/3d86cfab-b02f-4dca-b022-a9a7bbd8dd97" />
 
 ## ✨ Features
 
@@ -55,7 +56,8 @@ Initialize NetworkSniffer as early as possible — ideally in your app’s entry
 
 import NetworkSniffer
 
-MyNetworkLib.start()
+MyNetworkLib.start() or MyNetworkLib.start(capturedHosts = ["firebase", "google"]), 
+You can directly use start(), but if you pass capturedHosta explictly, you will see network traffic containing capured host key word, so that i would be clutter free.
 
 💡 Call this inside init() (SwiftUI) or application(_:didFinishLaunchingWithOptions:) (UIKit).
 
@@ -75,7 +77,7 @@ struct MyApp: App {
     @ObservedObject private var logger = NetworkLogger.shared
 
     init() {
-        MyNetworkLib.start()
+		MyNetworkLib.start(capturedHosts: [String] = ["xyz.com"])
     }
 
     var body: some Scene {
