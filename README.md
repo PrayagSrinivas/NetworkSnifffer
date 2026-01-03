@@ -55,7 +55,8 @@ Initialize NetworkSniffer as early as possible — ideally in your app’s entry
 
 import NetworkSniffer
 
-MyNetworkLib.start()
+MyNetworkLib.start() or MyNetworkLib.start(capturedHosts = ["firebase", "google"]), 
+You can directly use start(), but if you pass capturedHosta explictly, you will see network traffic containing capured host key word, so that i would be clutter free.
 
 💡 Call this inside init() (SwiftUI) or application(_:didFinishLaunchingWithOptions:) (UIKit).
 
@@ -75,7 +76,7 @@ struct MyApp: App {
     @ObservedObject private var logger = NetworkLogger.shared
 
     init() {
-        MyNetworkLib.start()
+		MyNetworkLib.start(capturedHosts: [String] = ["xyz.com"])
     }
 
     var body: some Scene {
