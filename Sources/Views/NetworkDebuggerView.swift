@@ -72,7 +72,11 @@ public struct NetworkDebuggerView: View {
                 }
                 
                 ToolbarItem(placement: .navigationBarTrailing) {
-                    Button(action: { logger.clearLogs() }) {
+                    Button(action: {
+                        logger.clearLogs()
+                        UIApplication.shared.windows.first(where: { $0.isKeyWindow })?
+                            .rootViewController?.dismiss(animated: true, completion: nil)
+                    }) {
                         Image(systemName: "trash")
                     }
                 }
