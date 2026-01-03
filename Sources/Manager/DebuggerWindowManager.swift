@@ -22,6 +22,10 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     private var tapGesture: UITapGestureRecognizer?
     private var longPressGesture: UILongPressGestureRecognizer?
     
+    private func hasLogs() -> Bool {
+        return !NetworkLogger.shared.logs.isEmpty
+    }
+    
     func start() {
         searchTimer?.invalidate()
         if attemptToShowWindow() { return }
@@ -128,6 +132,7 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     
     // MARK: - Menu Presentation (NEW)
     private func presentMenuOverlay() {
+        guard hasLogs() else { return }
         guard let window = overlayWindow, let rootVC = window.rootViewController else { return }
         if rootVC.presentedViewController != nil { return }
 
@@ -159,6 +164,7 @@ class DebuggerWindowManager: NSObject, ObservableObject {
     
     // MARK: - Dashboard Presentation
     func presentDebugger() {
+        guard hasLogs() else { return }
         guard let window = overlayWindow, let rootVC = window.rootViewController else { return }
         if rootVC.presentedViewController != nil { return }
         
@@ -211,3 +217,4 @@ class DebuggerHostingController<Content: View>: UIHostingController<Content> {
         }
     }
 }
+

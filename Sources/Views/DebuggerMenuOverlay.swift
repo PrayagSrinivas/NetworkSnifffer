@@ -73,7 +73,6 @@ struct DebuggerMenuOverlay: View {
                         .overlay(Circle().stroke(Color.green, lineWidth: 2))
                 }
                 .opacity(hasLogs ? 1 : 0.4)
-                .allowsHitTesting(hasLogs)
                 .onTapGesture { if hasLogs { closeMenu() } }
             }
             // Position exactly where the real button is

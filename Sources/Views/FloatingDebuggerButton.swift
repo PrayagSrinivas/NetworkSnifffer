@@ -34,7 +34,6 @@ public struct FloatingDebuggerButton: View {
             }
         }
         .opacity(hasLogs ? 1 : 0.4)
-        .allowsHitTesting(hasLogs)
     }
 }
 
