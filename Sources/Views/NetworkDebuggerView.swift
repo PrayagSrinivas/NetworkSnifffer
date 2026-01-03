@@ -60,7 +60,7 @@ public struct NetworkDebuggerView: View {
             }
             .listStyle(.insetGrouped) // A slightly cleaner look
             .searchable(text: $searchText, prompt: "Search endpoints...") // Built-in Search
-            .navigationTitle("Network Traffic 🦊")
+            .navigationTitle("Network Traffic")
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
                     Button("Close") {
