@@ -5,7 +5,6 @@
 //  Created by Srinivas Prayag Sahu on 28/12/25.
 //
 
-
 import SwiftUI
 
 public struct FloatingDebuggerButton: View {
@@ -17,17 +16,13 @@ public struct FloatingDebuggerButton: View {
         // NO BUTTON HERE. Just the visual elements.
         // Taps are handled by the Window Manager now.
         ZStack {
-            Circle()
-                .fill(Color.black.opacity(0.8))
-                .frame(width: 50, height: 50)
+            let hasLogs = !logger.logs.isEmpty
+            
+            ThemedNetworkIcon(size: 50, iconSize: 24, hasBackground: true)
                 .shadow(radius: 5)
                 .overlay(
                     Circle().stroke(Color.green, lineWidth: 2)
                 )
-            
-            Image(systemName: "network")
-                .font(.system(size: 24))
-                .foregroundColor(.green)
             
             if logger.logs.count > 0 {
                 Text("\(logger.logs.count)")
@@ -39,5 +34,8 @@ public struct FloatingDebuggerButton: View {
                     .offset(x: 15, y: -15)
             }
         }
+        .opacity(hasLogs ? 1 : 0.4)
+        .allowsHitTesting(hasLogs)
     }
 }
+

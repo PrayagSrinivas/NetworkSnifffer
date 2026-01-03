@@ -13,6 +13,7 @@ struct DebuggerMenuOverlay: View {
     let onDismiss: () -> Void
     
     @ObservedObject var logger = NetworkLogger.shared
+    @Environment(\.colorScheme) private var colorScheme
     @State private var showMenu = false
     
     // Determine which side the button is on
@@ -30,6 +31,7 @@ struct DebuggerMenuOverlay: View {
             ZStack {
                 // Direction multiplier: -1 if on right (move left), 1 if on left (move right)
                 let direction: CGFloat = isRightSide ? -1 : 1
+                let hasLogs = !logger.logs.isEmpty
                 
                 // --- TRASH BUTTON (Top-Diagonal) ---
                 if showMenu {
@@ -66,16 +68,12 @@ struct DebuggerMenuOverlay: View {
                 
                 // --- MAIN ANCHOR (Visual Only) ---
                 ZStack {
-                    Circle()
-                        .fill(Color.black.opacity(0.8))
-                        .frame(width: 50, height: 50)
+                    ThemedNetworkIcon(size: 50, iconSize: 24, hasBackground: true)
                         .overlay(Circle().stroke(Color.green, lineWidth: 2))
-                    
-                    Image(systemName: "network")
-                        .font(.system(size: 24))
-                        .foregroundColor(.green)
                 }
-                .onTapGesture { closeMenu() }
+                .opacity(hasLogs ? 1 : 0.4)
+                .allowsHitTesting(hasLogs)
+                .onTapGesture { if hasLogs { closeMenu() } }
             }
             // Position exactly where the real button is
             .position(x: buttonPosition.x + 30, y: buttonPosition.y + 30)
@@ -96,3 +94,4 @@ struct DebuggerMenuOverlay: View {
         }
     }
 }
+
