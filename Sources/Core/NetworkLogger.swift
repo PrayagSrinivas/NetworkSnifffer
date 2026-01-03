@@ -76,9 +76,6 @@ public class NetworkLogger: ObservableObject {
     func clearLogs() {
         DispatchQueue.main.async {
             self.logs.removeAll()
-            withAnimation {
-                self.isDashboardPresented = false
-            }
         }
     }
 }
