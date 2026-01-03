@@ -14,30 +14,30 @@ public struct FloatingDebuggerButton: View {
     public init() {}
     
     public var body: some View {
-        // NO BUTTON HERE. Just the visual elements.
-        // Taps are handled by the Window Manager now.
-        ZStack {
-            Circle()
-                .fill(Color.black.opacity(0.8))
-                .frame(width: 50, height: 50)
-                .shadow(radius: 5)
-                .overlay(
-                    Circle().stroke(Color.green, lineWidth: 2)
-                )
-            
-            Image(systemName: "network")
-                .font(.system(size: 24))
-                .foregroundColor(.green)
-            
-            if logger.logs.count > 0 {
-                Text("\(logger.logs.count)")
-                    .font(.system(size: 10, weight: .bold))
-                    .foregroundColor(.white)
-                    .padding(5)
-                    .background(Color.red)
-                    .clipShape(Circle())
-                    .offset(x: 15, y: -15)
+        Button(action: {
+            // Only toggle if we actually have logs
+            if !logger.logs.isEmpty {
+                logger.isDashboardPresented.toggle()
             }
+        }) {
+            Image(systemName: "ladybug.fill") // "Modern" bug icon
+                .font(.system(size: 24, weight: .semibold))
+            // Adaptive Colors: White icon on Black text (and vice versa)
+                .foregroundColor(Color(UIColor.systemBackground))
+                .frame(width: 56, height: 56)
+                .background(
+                    Circle()
+                    // Adaptive Background: Black in Light Mode, White in Dark Mode
+                        .fill(Color.primary)
+                        .shadow(color: Color.black.opacity(0.3), radius: 6, x: 0, y: 4)
+                )
         }
+        // UX 1: Disable interaction if no logs
+        .disabled(logger.logs.isEmpty)
+        // UX 2: Grey out ("Ghost") the button if no logs
+        .opacity(logger.logs.isEmpty ? 0.4 : 1.0)
+        // Animation for smooth state changes
+        .animation(.spring(), value: logger.logs.isEmpty)
+        .padding()
     }
 }
