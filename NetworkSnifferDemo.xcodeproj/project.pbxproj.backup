@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		AC98E6B02F5BE531005679F6 /* NetworkSnifffer in Frameworks */ = {isa = PBXBuildFile; productRef = A7FB0264D53F48DC94C13DE1 /* NetworkSnifffer */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		80285C5F2F00056E0017E0E4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -46,7 +42,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC98E6B02F5BE531005679F6 /* NetworkSnifffer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,7 +100,6 @@
 			);
 			name = NetworkSnifferDemo;
 			packageProductDependencies = (
-				A7FB0264D53F48DC94C13DE1 /* NetworkSnifffer */,
 			);
 			productName = NetworkSnifferDemo;
 			productReference = 80285C512F00056D0017E0E4 /* NetworkSnifferDemo.app */;
@@ -183,9 +177,6 @@
 			);
 			mainGroup = 80285C482F00056D0017E0E4;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				536BE80017454D078AA50654 /* XCLocalSwiftPackageReference ".." */,
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 80285C522F00056D0017E0E4 /* Products */;
 			projectDirPath = "";
@@ -569,21 +560,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCLocalSwiftPackageReference section */
-		536BE80017454D078AA50654 /* XCLocalSwiftPackageReference ".." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
-		};
-/* End XCLocalSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		A7FB0264D53F48DC94C13DE1 /* NetworkSnifffer */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 536BE80017454D078AA50654 /* XCLocalSwiftPackageReference ".." */;
-			productName = NetworkSnifffer;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 80285C492F00056D0017E0E4 /* Project object */;
 }
