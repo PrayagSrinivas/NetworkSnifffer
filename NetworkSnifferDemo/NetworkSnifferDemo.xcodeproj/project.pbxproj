@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		AC98E6B02F5BE531005679F6 /* NetworkSnifffer in Frameworks */ = {isa = PBXBuildFile; productRef = A7FB0264D53F48DC94C13DE1 /* NetworkSnifffer */; };
+		80C3F4182F5BFB2300BA0412 /* NetworkSnifffer in Frameworks */ = {isa = PBXBuildFile; productRef = 80C3F4172F5BFB2300BA0412 /* NetworkSnifffer */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -46,7 +46,7 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				AC98E6B02F5BE531005679F6 /* NetworkSnifffer in Frameworks */,
+				80C3F4182F5BFB2300BA0412 /* NetworkSnifffer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,7 +105,7 @@
 			);
 			name = NetworkSnifferDemo;
 			packageProductDependencies = (
-				A7FB0264D53F48DC94C13DE1 /* NetworkSnifffer */,
+				80C3F4172F5BFB2300BA0412 /* NetworkSnifffer */,
 			);
 			productName = NetworkSnifferDemo;
 			productReference = 80285C512F00056D0017E0E4 /* NetworkSnifferDemo.app */;
@@ -184,7 +184,7 @@
 			mainGroup = 80285C482F00056D0017E0E4;
 			minimizedProjectReferenceProxies = 1;
 			packageReferences = (
-				536BE80017454D078AA50654 /* XCLocalSwiftPackageReference ".." */,
+				80C3F4162F5BFB2300BA0412 /* XCRemoteSwiftPackageReference "NetworkSnifffer" */,
 			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 80285C522F00056D0017E0E4 /* Products */;
@@ -570,17 +570,21 @@
 		};
 /* End XCConfigurationList section */
 
-/* Begin XCLocalSwiftPackageReference section */
-		536BE80017454D078AA50654 /* XCLocalSwiftPackageReference ".." */ = {
-			isa = XCLocalSwiftPackageReference;
-			relativePath = ..;
+/* Begin XCRemoteSwiftPackageReference section */
+		80C3F4162F5BFB2300BA0412 /* XCRemoteSwiftPackageReference "NetworkSnifffer" */ = {
+			isa = XCRemoteSwiftPackageReference;
+			repositoryURL = "https://github.com/PrayagSrinivas/NetworkSnifffer";
+			requirement = {
+				branch = main;
+				kind = branch;
+			};
 		};
-/* End XCLocalSwiftPackageReference section */
+/* End XCRemoteSwiftPackageReference section */
 
 /* Begin XCSwiftPackageProductDependency section */
-		A7FB0264D53F48DC94C13DE1 /* NetworkSnifffer */ = {
+		80C3F4172F5BFB2300BA0412 /* NetworkSnifffer */ = {
 			isa = XCSwiftPackageProductDependency;
-			package = 536BE80017454D078AA50654 /* XCLocalSwiftPackageReference ".." */;
+			package = 80C3F4162F5BFB2300BA0412 /* XCRemoteSwiftPackageReference "NetworkSnifffer" */;
 			productName = NetworkSnifffer;
 		};
 /* End XCSwiftPackageProductDependency section */
