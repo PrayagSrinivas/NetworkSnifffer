@@ -32,7 +32,7 @@ public class NetworkLogger: ObservableObject {
     }
     
     /// Main function to capture and process a network request
-    func log(request: URLRequest, response: URLResponse?, responseData: Data?, error: Error?, startTime: Date) {
+    func log(request: URLRequest, response: URLResponse?, responseData: Data?, error: Error?, startTime: Date, metrics: URLSessionTaskMetrics? = nil) {
         let endTime = Date()
         let duration = endTime.timeIntervalSince(startTime)
         
@@ -53,7 +53,14 @@ public class NetworkLogger: ObservableObject {
         
         let resBody = NetworkTraffic.string(from: responseData)
         
-        // 3. Create the Model
+        // 3. Extract detailed timing data from metrics
+        let timingData = extractTimingData(from: metrics, totalDuration: duration)
+        
+        // 4. Calculate data sizes
+        let requestSize = Int64(request.httpBody?.count ?? 0)
+        let responseSize = Int64(responseData?.count ?? 0)
+        
+        // 5. Create the Model
         let traffic = NetworkTraffic(
             timestamp: startTime,
             url: url,
@@ -63,14 +70,60 @@ public class NetworkLogger: ObservableObject {
             requestBody: reqBody,
             responseHeaders: resHeaders,
             responseBody: resBody,
-            duration: duration
+            duration: duration,
+            timingData: timingData,
+            requestSize: requestSize,
+            responseSize: responseSize
         )
         
-        // 4. Update the UI (Must be on Main Thread)
+        // 6. Update the UI (Must be on Main Thread)
         DispatchQueue.main.async {
             // Insert at the top (newest first)
             self.logs.insert(traffic, at: 0)
         }
+    }
+    
+    private func extractTimingData(from metrics: URLSessionTaskMetrics?, totalDuration: TimeInterval) -> TimingData? {
+        guard let metrics = metrics, let transaction = metrics.transactionMetrics.first else {
+            return TimingData(
+                dnsLookupDuration: nil,
+                connectDuration: nil,
+                secureConnectionDuration: nil,
+                requestDuration: nil,
+                responseDuration: nil,
+                totalDuration: totalDuration
+            )
+        }
+        
+        // Calculate individual timing phases
+        let dnsStart = transaction.domainLookupStartDate
+        let dnsEnd = transaction.domainLookupEndDate
+        let dnsLookup = (dnsStart != nil && dnsEnd != nil) ? dnsEnd!.timeIntervalSince(dnsStart!) : nil
+        
+        let connectStart = transaction.connectStartDate
+        let connectEnd = transaction.connectEndDate
+        let connect = (connectStart != nil && connectEnd != nil) ? connectEnd!.timeIntervalSince(connectStart!) : nil
+        
+        let sslStart = transaction.secureConnectionStartDate
+        let sslEnd = transaction.secureConnectionEndDate
+        let ssl = (sslStart != nil && sslEnd != nil) ? sslEnd!.timeIntervalSince(sslStart!) : nil
+        
+        let requestStart = transaction.requestStartDate
+        let requestEnd = transaction.requestEndDate
+        let request = (requestStart != nil && requestEnd != nil) ? requestEnd!.timeIntervalSince(requestStart!) : nil
+        
+        let responseStart = transaction.responseStartDate
+        let responseEnd = transaction.responseEndDate
+        let response = (responseStart != nil && responseEnd != nil) ? responseEnd!.timeIntervalSince(responseStart!) : nil
+        
+        return TimingData(
+            dnsLookupDuration: dnsLookup,
+            connectDuration: connect,
+            secureConnectionDuration: ssl,
+            requestDuration: request,
+            responseDuration: response,
+            totalDuration: totalDuration
+        )
     }
     
     func clearLogs() {

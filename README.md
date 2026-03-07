@@ -21,6 +21,12 @@ It intercepts **all `URLSession` traffic** inside your app and provides a **powe
 - 🔍 **Search & Filter**  
   Quickly locate specific endpoints using the built-in search.
 
+- 🆕 **Smart Dynamic Filters** *(New!)*  
+  Filter network logs by HTTP method (GET, POST, PUT, DELETE) and status (Success/Failure). Filter options intelligently adapt based on available data.
+
+- 📊 **Comprehensive Detail View**  
+  4-tab interface (Summary, Request, Response, Timing) with visual timing charts, all headers, and formatted bodies.
+
 - 📄 **JSON Pretty Printing**  
   Automatically formats request and response JSON for easy readability.
 
@@ -43,8 +49,8 @@ It intercepts **all `URLSession` traffic** inside your app and provides a **powe
 ```text
 https://github.com/YourUsername/NetworkSniffer.git
 
-	4.	Select Up to Next Major Version → 1.0.0
-	5.	Click Add Package
+    4.    Select Up to Next Major Version → 1.0.0
+    5.    Click Add Package
 
 ⸻
 
@@ -77,7 +83,7 @@ struct MyApp: App {
     @ObservedObject private var logger = NetworkLogger.shared
 
     init() {
-		MyNetworkLib.start(capturedHosts: [String] = ["xyz.com"])
+        MyNetworkLib.start(capturedHosts: [String] = ["xyz.com"])
     }
 
     var body: some Scene {
@@ -139,23 +145,63 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 ⸻
 
 🧠 How It Works
-	1.	Request Interception
+    1.    Request Interception
 A custom URLProtocol intercepts traffic at the URL Loading System level.
-	2.	Session Injection
+    2.    Session Injection
 The protocol is automatically injected into URLSessionConfiguration.default, allowing capture of:
-	•	Native URLSession
-	•	Third-party libraries (e.g. Alamofire)
-	3.	Thread-Safe Storage
+    •    Native URLSession
+    •    Third-party libraries (e.g. Alamofire)
+    3.    Thread-Safe Storage
 Requests and responses are stored in a thread-safe singleton.
-	4.	Native UI Rendering
+    4.    Native UI Rendering
 A SwiftUI-based dashboard visualizes captured network data in real time.
 
 ⸻
 
+## 🎯 Demo Project
+
+Want to see NetworkSniffer in action? Check out the included demo app!
+
+The demo project is located in the `NetworkSnifferDemo` folder and provides a ready-to-run iOS app that demonstrates all the library's features.
+
+### Quick Start
+
+Run this command in your terminal:
+```bash
+cd /Users/srinivas/Documents/NetworkSnifffer
+./RUN_DEMO.sh
+```
+
+Or manually:
+1. Open `NetworkSnifferDemo/NetworkSnifferDemo.xcodeproj` in Xcode
+2. Select "NetworkSnifferDemo" from the scheme dropdown (top-left)
+3. Select a simulator or device
+4. Run the app (⌘+R)
+
+### Demo Features
+
+The demo app includes:
+- **4 API Test Buttons**: GET, POST, PUT, DELETE
+- **Real API Calls**: Makes requests to JSONPlaceholder test API
+- **🆕 Smart Filters**: Try the new dynamic filter menu (tap the ☰ icon)
+- **Detailed Inspection**: View comprehensive request/response details
+- **Timing Analysis**: See visual timing breakdowns
+
+Tap any button to fire an API request, then use the floating debug button (🔍) to:
+- View all captured network traffic
+- **Filter by method** (GET, POST, PUT, DELETE)
+- **Filter by status** (Success/Failure)  
+- **Search endpoints** by URL
+- Inspect detailed request/response data
+
+For more details, see the [Demo README](NetworkSnifferDemo/README.md) or [Filter Feature Guide](FILTER_FEATURE.md).
+
+⸻
+
 📋 Requirements
-	•	iOS 14.0+
-	•	Swift 5.5+
-	•	Xcode 13+
+    •    iOS 14.0+
+    •    Swift 5.5+
+    •    Xcode 13+
 
 ⸻
 

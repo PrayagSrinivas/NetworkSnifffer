@@ -1,0 +1,15 @@
+{
+  "originHash" : "d0d552595870920620ed18d200282ef5a1f7408cfed5c0317e119d0f517f2056",
+  "pins" : [
+    {
+      "identity" : "networksnifffer",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/PrayagSrinivas/NetworkSnifffer",
+      "state" : {
+        "branch" : "main",
+        "revision" : "886944b03abec1c77a329fd422abd41285602e17"
+      }
+    }
+  ],
+  "version" : 3
+}

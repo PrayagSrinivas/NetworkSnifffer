@@ -17,6 +17,7 @@ final class NetworkInterceptor: URLProtocol, @unchecked Sendable {
     var receivedData: NSMutableData?
     var response: URLResponse?
     var startTime: Date?
+    var metrics: URLSessionTaskMetrics?
     
     // 1. Determine if we should handle this request
     override class func canInit(with request: URLRequest) -> Bool {
@@ -98,6 +99,10 @@ extension NetworkInterceptor: URLSessionDataDelegate {
         client?.urlProtocol(self, didLoad: data) // Pass data to original app
     }
     
+    func urlSession(_ session: URLSession, task: URLSessionTask, didFinishCollecting metrics: URLSessionTaskMetrics) {
+        self.metrics = metrics
+    }
+    
     func urlSession(_ session: URLSession, task: URLSessionTask, didCompleteWithError error: Error?) {
         if let error = error {
             client?.urlProtocol(self, didFailWithError: error)
@@ -112,6 +117,7 @@ extension NetworkInterceptor: URLSessionDataDelegate {
         let dataToLog = self.receivedData as Data?
         let errorToLog = error
         let startTimeToLog = self.startTime ?? Date()
+        let metricsToLog = self.metrics
         
         // 2. Pass the COPIES into the Task.
         // Notice 'self' is NOT used inside the braces { ... }.
@@ -121,7 +127,8 @@ extension NetworkInterceptor: URLSessionDataDelegate {
                 response: responseToLog,
                 responseData: dataToLog,
                 error: errorToLog,
-                startTime: startTimeToLog
+                startTime: startTimeToLog,
+                metrics: metricsToLog
             )
         }
     }

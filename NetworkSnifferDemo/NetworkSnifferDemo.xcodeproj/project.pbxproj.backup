@@ -6,10 +6,6 @@
 	objectVersion = 77;
 	objects = {
 
-/* Begin PBXBuildFile section */
-		80C3F4182F5BFB2300BA0412 /* NetworkSnifffer in Frameworks */ = {isa = PBXBuildFile; productRef = 80C3F4172F5BFB2300BA0412 /* NetworkSnifffer */; };
-/* End PBXBuildFile section */
-
 /* Begin PBXContainerItemProxy section */
 		80285C5F2F00056E0017E0E4 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
@@ -46,7 +42,6 @@
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				80C3F4182F5BFB2300BA0412 /* NetworkSnifffer in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -105,7 +100,6 @@
 			);
 			name = NetworkSnifferDemo;
 			packageProductDependencies = (
-				80C3F4172F5BFB2300BA0412 /* NetworkSnifffer */,
 			);
 			productName = NetworkSnifferDemo;
 			productReference = 80285C512F00056D0017E0E4 /* NetworkSnifferDemo.app */;
@@ -183,9 +177,6 @@
 			);
 			mainGroup = 80285C482F00056D0017E0E4;
 			minimizedProjectReferenceProxies = 1;
-			packageReferences = (
-				80C3F4162F5BFB2300BA0412 /* XCRemoteSwiftPackageReference "NetworkSnifffer" */,
-			);
 			preferredProjectObjectVersion = 77;
 			productRefGroup = 80285C522F00056D0017E0E4 /* Products */;
 			projectDirPath = "";
@@ -569,25 +560,6 @@
 			defaultConfigurationName = Release;
 		};
 /* End XCConfigurationList section */
-
-/* Begin XCRemoteSwiftPackageReference section */
-		80C3F4162F5BFB2300BA0412 /* XCRemoteSwiftPackageReference "NetworkSnifffer" */ = {
-			isa = XCRemoteSwiftPackageReference;
-			repositoryURL = "https://github.com/PrayagSrinivas/NetworkSnifffer";
-			requirement = {
-				branch = main;
-				kind = branch;
-			};
-		};
-/* End XCRemoteSwiftPackageReference section */
-
-/* Begin XCSwiftPackageProductDependency section */
-		80C3F4172F5BFB2300BA0412 /* NetworkSnifffer */ = {
-			isa = XCSwiftPackageProductDependency;
-			package = 80C3F4162F5BFB2300BA0412 /* XCRemoteSwiftPackageReference "NetworkSnifffer" */;
-			productName = NetworkSnifffer;
-		};
-/* End XCSwiftPackageProductDependency section */
 	};
 	rootObject = 80285C492F00056D0017E0E4 /* Project object */;
 }
