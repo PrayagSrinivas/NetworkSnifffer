@@ -1,4 +1,4 @@
-# NetworkSnifffer ⚡️
+# NetworkSnifffer
 
 **NetworkSnifffer** is a lightweight, zero-configuration network debugging library for iOS.
 
