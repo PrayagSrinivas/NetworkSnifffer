@@ -170,9 +170,6 @@ public struct NetworkDebuggerView: View {
             .onAppear {
                 NetworkLogger.shared.isDashboardPresented = true
             }
-            .onDisappear {
-                NetworkLogger.shared.isDashboardPresented = false
-            }
         }
         .colorScheme(.dark)
     }

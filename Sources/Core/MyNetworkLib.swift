@@ -29,6 +29,9 @@ public class MyNetworkLib {
     /// Start the Sniffer with optional ignored domains
     /// - Parameter ignoredDomains: A list of hostnames or keywords to ignore (e.g. "firebase", "google")
     public static func start(capturedHosts: [String] = []) {
+        // Prevent execution completely in App Store production builds
+        guard BuildContext.shouldShowDebugger else { return }
+        
         self.capturedHosts = capturedHosts
         
         URLProtocol.registerClass(NetworkInterceptor.self)
