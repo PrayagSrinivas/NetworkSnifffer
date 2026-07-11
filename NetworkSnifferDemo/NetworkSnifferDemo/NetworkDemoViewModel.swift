@@ -15,6 +15,7 @@ class NetworkDemoViewModel: ObservableObject {
     @Published var isLoadingPost = false
     @Published var isLoadingPut = false
     @Published var isLoadingDelete = false
+    @Published var isLoadingError = false
     @Published var lastResponse: String?
     
     private let apiService = APIService()
@@ -68,6 +69,19 @@ class NetworkDemoViewModel: ObservableObject {
             lastResponse = "DELETE Success: \(result)"
         } catch {
             lastResponse = "DELETE Error: \(error.localizedDescription)"
+        }
+    }
+    
+    // GET Error Request (404) Test
+    func testErrorRequest() async {
+        isLoadingError = true
+        defer { isLoadingError = false }
+        
+        do {
+            let result = try await apiService.getErrorRequest()
+            lastResponse = "Error Request Success: \(result.prefix(100))..."
+        } catch {
+            lastResponse = "Error Request (Expected) Failure: \(error.localizedDescription)"
         }
     }
 }

@@ -5,6 +5,6 @@
       location = "group:NetworkSnifferDemo.xcodeproj">
    </FileRef>
    <FileRef
-      location = "group:../Package.swift">
+      location = "group:..">
    </FileRef>
 </Workspace>

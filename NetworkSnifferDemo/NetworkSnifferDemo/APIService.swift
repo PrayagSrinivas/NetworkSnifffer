@@ -101,6 +101,22 @@ class APIService {
         
         return "Resource deleted successfully (Status: \(httpResponse.statusCode))"
     }
+    
+    // MARK: - GET Error Request (404)
+    func getErrorRequest() async throws -> String {
+        let url = URL(string: "\(jsonPlaceholderURL)/invalid-endpoint-for-error-testing")!
+        let (data, response) = try await URLSession.shared.data(from: url)
+        
+        guard let httpResponse = response as? HTTPURLResponse,
+              (200...299).contains(httpResponse.statusCode) else {
+            throw APIError.invalidResponse
+        }
+        
+        if let jsonString = String(data: data, encoding: .utf8) {
+            return jsonString
+        }
+        throw APIError.invalidData
+    }
 }
 
 // MARK: - Error Types
