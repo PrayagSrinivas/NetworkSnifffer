@@ -3,8 +3,7 @@ import PackageDescription
 
 let package = Package(
     name: "NetworkSnifffer",
-    // 1. IMPORTANT: Define the minimum platform version.
-    // iOS 14 is safe for modern SwiftUI. Use .v15 if you need newer features.
+    // Minimum platform version. iOS 15 is required for the SwiftUI debugger UI.
     platforms: [
         .iOS(.v15)
     ],
@@ -15,14 +14,16 @@ let package = Package(
         ),
     ],
     targets: [
-        // This target looks for code in 'Sources/NetworkSnifffer'
+        // Sources live under Sources/{Core,Manager,Views}, not Sources/NetworkSnifffer,
+        // so the target path has to be set explicitly or SwiftPM cannot build the graph.
         .target(
             name: "NetworkSnifffer",
-            dependencies: []
+            path: "Sources"
         ),
         .testTarget(
             name: "NetworkSniffferTests",
-            dependencies: ["NetworkSnifffer"]
+            dependencies: ["NetworkSnifffer"],
+            path: "Tests/NetworkSniffferTests"
         ),
     ]
 )
